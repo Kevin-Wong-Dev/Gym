@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IRON GYM · Admin Panel</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="overlay-bg" id="overlay-bg"></div>
+
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">IRON GYM</div>
+    <div class="sub">Panel Administrativo</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">General</div>
+    <div class="nav-item active" data-section="dashboard"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-label">Gestión</div>
+    <div class="nav-item" data-section="members"><span class="icon">🏋️</span> Miembros</div>
+    <div class="nav-item" data-section="staff"><span class="icon">👥</span> Personal</div>
+  </nav>
+  <div class="sidebar-giphy">
+    <div class="nav-label">Motivación</div>
+    <div class="giphy-search-bar">
+      <span style="color:var(--white-muted);font-size:12px">🔍</span>
+      <input type="text" id="giphy-input" placeholder="Buscar gif..." autocomplete="off"/>
+    </div>
+    <div id="giphy-grid" class="giphy-grid"><div class="giphy-placeholder">Cargando GIFs...</div></div>
+    <div id="giphy-selected" class="giphy-selected">
+      <img id="giphy-preview" src="" alt="gif"/>
+      <button class="giphy-clear" onclick="clearGiphy()">✕ Cambiar GIF</button>
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-card">
+      <div class="admin-avatar">AD</div>
+      <div class="admin-info">
+        <div class="name">Admin</div>
+        <div class="role">Administrador</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div id="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button id="hamburger"><span></span><span></span><span></span></button>
+      <div class="topbar-left">
+        <h1 id="topbar-title">Dashboard</h1>
+        <div class="breadcrumb" id="topbar-breadcrumb">Iron Gym / Dashboard</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:11px;color:var(--white-muted);font-family:'JetBrains Mono',monospace" id="clock"></div>
+    </div>
+  </header>
+
+  <section id="page-dashboard" class="page active">
+    <div class="stats-grid">
+      <div class="stat-card yellow">
+        <div class="stat-label">Total Miembros</div>
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-sub">Registrados</div>
+        <div class="stat-bar"><div class="stat-bar-fill" id="bar-total" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Activos</div>
+        <div class="stat-value" id="stat-active">0</div>
+        <div class="stat-sub">Membresía vigente</div>
+        <div class="stat-bar"><div class="stat-bar-fill" id="bar-active" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Expirados</div>
+        <div class="stat-value" id="stat-expired">0</div>
+        <div class="stat-sub">Sin renovar</div>
+        <div class="stat-bar"><div class="stat-bar-fill" id="bar-expired" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-label">Por Vencer</div>
+        <div class="stat-value" id="stat-soon">0</div>
+        <div class="stat-sub">Próximos 7 días</div>
+        <div class="stat-bar"><div class="stat-bar-fill" id="bar-soon" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">Personal</div>
+        <div class="stat-value" id="stat-staff">0</div>
+        <div class="stat-sub">Empleados activos</div>
+        <div class="stat-bar"><div class="stat-bar-fill" id="bar-staff" style="width:100%"></div></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">Distribución por plan</div>
+        <div class="donut-wrap">
+          <svg width="90" height="90" viewBox="0 0 90 90" id="donut-svg"></svg>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Estado de membresías</div>
+        <div class="bar-chart" id="bar-chart-status"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="dash-bottom">
+      <div class="table-wrap">
+        <div style="padding:14px 16px 10px;border-bottom:1px solid var(--black-4);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--white-muted);font-weight:600">Próximas Expiraciones</div>
+        <table>
+          <thead><tr><th>Miembro</th><th>Plan</th><th>Vence</th><th>Estado</th></tr></thead>
+          <tbody id="dash-expiry-body"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <div style="padding:14px 16px 10px;border-bottom:1px solid var(--black-4);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--white-muted);font-weight:600">Actividad Reciente</div>
+        <div class="activity-feed" id="activity-feed"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-members" class="page">
+    <div class="section-header">
+      <div class="section-title">Miembros</div>
+      <div class="section-actions">
+        <div class="search-bar"><span>🔍</span><input type="text" id="member-search" placeholder="Buscar miembro..."/></div>
+        <select class="filter-select" id="member-filter">
+          <option value="all">Todos</option>
+          <option value="active">Activos</option>
+          <option value="expired">Expirados</option>
+          <option value="soon">Por vencer</option>
+        </select>
+        <button class="btn btn-primary" onclick="openAddMember()">+ Nuevo Miembro</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Miembro</th><th>Teléfono</th><th>Plan</th><th>Registro</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody id="members-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="page-staff" class="page">
+    <div class="section-header">
+      <div class="section-title">Personal</div>
+      <div class="section-actions">
+        <div class="search-bar"><span>🔍</span><input type="text" id="staff-search" placeholder="Buscar personal..."/></div>
+        <button class="btn btn-primary" onclick="openAddStaff()">+ Nuevo Personal</button>
+      </div>
+    </div>
+    <div id="staff-grid" class="staff-grid"></div>
+  </section>
+</div>
+
+<div class="modal-overlay" id="member-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="member-modal-title">Nuevo Miembro</h2>
+      <button class="modal-close" onclick="closeMemberModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Nombre *</label><input type="text" id="m-name" placeholder="Nombre completo"/></div>
+        <div class="form-group"><label>Email *</label><input type="email" id="m-email" placeholder="correo@ejemplo.com"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Teléfono</label><input type="tel" id="m-phone" placeholder="33-0000-0000"/></div>
+        <div class="form-group"><label>Plan</label>
+          <select id="m-plan"><option value="Mensual">Mensual</option><option value="Trimestral">Trimestral</option><option value="Semestral">Semestral</option><option value="Anual">Anual</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+            <label>Duración (Meses)</label>
+            <div class="number-stepper">
+                <button class="stepper-btn" onclick="this.parentNode.querySelector('input').stepDown(); updateExpiryDate()">-</button>
+                <input type="number" id="m-duration" value="1" min="1" max="12" onchange="updateExpiryDate()">
+                <button class="stepper-btn" onclick="this.parentNode.querySelector('input').stepUp(); updateExpiryDate()">+</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Vencimiento Calculado</label>
+            <input type="date" id="m-expiry" readonly style="color:var(--white-dim); background:var(--black-4)"/>
+        </div>
+      </div>
+      <div class="form-row" style="align-items:center; padding-top:10px;">
+          <label class="toggle-switch">
+              <input type="checkbox" id="m-auto-renew">
+              <span class="slider"></span>
+              <span class="toggle-label">Renovación Automática</span>
+          </label>
+          <label class="custom-checkbox">
+              <input type="checkbox" id="m-medical">
+              <span class="checkmark"></span>
+              Certificado Médico OK
+          </label>
+      </div>
+      <div class="form-group"><label>Notas</label><textarea id="m-notes" placeholder="Observaciones..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMemberModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveMember()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="staff-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="staff-modal-title">Nuevo Personal</h2>
+      <button class="modal-close" onclick="closeStaffModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Nombre *</label><input type="text" id="s-name" placeholder="Nombre completo"/></div>
+        <div class="form-group"><label>Email *</label><input type="email" id="s-email" placeholder="correo@irongym.com"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Teléfono</label><input type="tel" id="s-phone" placeholder="33-0000-0000"/></div>
+        <div class="form-group"><label>Rol *</label><input type="text" id="s-role" placeholder="Ej: Entrenador"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Horario</label><input type="text" id="s-schedule" placeholder="Lun–Vie 6am–2pm"/></div>
+        <div class="form-group"><label>Fecha de ingreso</label><input type="date" id="s-since"/></div>
+      </div>
+      <div class="form-group"><label>Notas</label><textarea id="s-notes" placeholder="Especialidades..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeStaffModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveStaff()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirm-modal">
+  <div class="confirm-modal">
+    <div class="confirm-icon">🗑️</div>
+    <h3>¿Eliminar registro?</h3>
+    <p>Estás a punto de eliminar a <strong id="confirm-name"></strong>. Esta acción no se puede deshacer.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-danger" onclick="executeDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="app.js"></script>
+</body>
+</html>
